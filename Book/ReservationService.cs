@@ -2,6 +2,8 @@
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
+using ShareInvest.Models;
+
 using System.IO;
 
 namespace ShareInvest;
@@ -36,7 +38,7 @@ class ReservationService : IDisposable
         driver.Navigate().GoToUrl(url);
     }
 
-    internal async Task EnterInfomationAsync(int np, string? region, string? house, DateTime startDate, DateTime endDate, int commandTimeout = 0x100)
+    internal async Task EnterInfomationAsync(Reservation rm, int commandTimeout = 0x100)
     {
         bool clickComboBox(string prefix, string? suffix = null, string? matchWord = null)
         {
@@ -64,16 +66,16 @@ class ReservationService : IDisposable
             return false;
         }
 
-        if (clickComboBox("//*[@id=\"srch_frm\"]/div[1]/div[1]", matchWord: region, suffix: "//*[@id=\"srch_region\"]/ul/li"))
+        if (clickComboBox("//*[@id=\"srch_frm\"]/div[1]/div[1]", matchWord: rm.Region, suffix: "//*[@id=\"srch_region\"]/ul/li"))
         {
-            if (clickComboBox("//*[@id=\"srch_frm\"]/div[2]/div[1]", matchWord: house, suffix: "//*[@id=\"srch_rcfcl\"]/ul/li"))
+            if (clickComboBox("//*[@id=\"srch_frm\"]/div[2]/div[1]", matchWord: rm.ForestRetreat, suffix: "//*[@id=\"srch_rcfcl\"]/ul/li"))
             {
                 if (clickComboBox("//*[@id=\"srch_frm\"]/div[3]"))
                 {
                     var calendar = driver.FindElement(By.Id("forestCalPicker"));
 
-                    calendar.FindElement(By.XPath($"//a[@name='{startDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(startDate.DayOfWeek)})']")).Click();
-                    calendar.FindElement(By.XPath($"//a[@name='{endDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(endDate.DayOfWeek)})']")).Click();
+                    calendar.FindElement(By.XPath($"//a[@name='{rm.StartDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.StartDate.DayOfWeek)})']")).Click();
+                    calendar.FindElement(By.XPath($"//a[@name='{rm.EndDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.EndDate.DayOfWeek)})']")).Click();
 
                     foreach (var a in calendar.FindElements(By.TagName("a")))
                     {
@@ -87,18 +89,18 @@ class ReservationService : IDisposable
                         }
                     }
 
-                    while (int.TryParse(driver.FindElement(By.Id("stng_nofpr")).Text, out int cost) && cost != np)
+                    while (int.TryParse(driver.FindElement(By.Id("stng_nofpr")).Text, out int cost) && cost != rm.NumberOfPeople)
                     {
                         foreach (var a in driver.FindElement(By.XPath("//*[@id=\"srch_frm\"]/div[4]/div[2]")).FindElements(By.TagName("a")))
                         {
-                            if (cost > np && "minus".Equals(a.GetAttribute("class")))
+                            if (cost > rm.NumberOfPeople && "minus".Equals(a.GetAttribute("class")))
                             {
                                 a.Click();
 
                                 break;
                             }
 
-                            if (cost < np && "plus".Equals(a.GetAttribute("class")))
+                            if (cost < rm.NumberOfPeople && "plus".Equals(a.GetAttribute("class")))
                             {
                                 a.Click();
 
@@ -130,9 +132,105 @@ class ReservationService : IDisposable
                             break;
                         }
                     }
+
+                    if (string.IsNullOrEmpty(rm.CabinName) is false)
+                    {
+                        await Task.Delay(0x200);
+
+                        try
+                        {
+                            _ = driver.FindElement(By.Id("searchResultEmpty"));
+                        }
+                        catch (NoSuchElementException)
+                        {
+                            if (await ChooseCabinAsync(rm.CabinName))
+                            {
+                                await Task.Delay(0x200);
+
+                                await Reserve();
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+
+    async Task Reserve(int commandTimeout = 0x400)
+    {
+        var dw = new WebDriverWait(driver, TimeSpan.FromMilliseconds(commandTimeout));
+
+        dw.Until(e => e.FindElement(By.Id("arr_01")).FindElement(By.XPath(".."))).Click();
+
+        await Task.Delay(0x100);
+
+        dw.Until(e => e.FindElement(By.Id("btnRsrvt"))).Click();
+
+        await Task.Delay(0x200);
+
+        dw.Until(e => e.SwitchTo().Alert()).Accept();
+    }
+
+    async Task<bool> ChooseCabinAsync(string name, int commandTimeout = 0x400)
+    {
+        await Task.Delay(0x200);
+
+        var dw = new WebDriverWait(driver, TimeSpan.FromMilliseconds(commandTimeout));
+
+        foreach (var label in dw.Until(e => e.FindElement(By.Id("cmpgr")).FindElements(By.ClassName("chackbox_all"))))
+        {
+            label.Click();
+
+            await Task.Delay(0x200);
+        }
+        var cabins = dw.Until(e => e.FindElement(By.Id("gsrm")));
+
+        foreach (var label in cabins.FindElements(By.ClassName("chackbox_all")))
+        {
+            label.Click();
+
+            await Task.Delay(0x200);
+        }
+
+        foreach (var label in cabins.FindElements(By.TagName("label")))
+        {
+            if (name.Contains(label.Text))
+            {
+                label.Click();
+
+                break;
+            }
+        }
+        await Task.Delay(0x200);
+
+        foreach (var div in driver.FindElements(By.ClassName("goods_list_area")))
+        {
+            foreach (var cl in div.FindElements(By.TagName("div")))
+            {
+                if (cl.GetAttribute("class").StartsWith("communication"))
+                {
+                    foreach (var e in cl.FindElements(By.TagName("div")))
+                    {
+                        if (e.GetAttribute("class").StartsWith("list") is false)
+                        {
+                            continue;
+                        }
+
+                        foreach (var a in e.FindElements(By.TagName("a")))
+                        {
+                            if ("item".Equals(a.GetAttribute("class")) && a.Text.Contains(name))
+                            {
+                                a.Click();
+
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return false;
     }
 
     static string GetDayOfWeek(DayOfWeek dayOfWeek) => dayOfWeek switch

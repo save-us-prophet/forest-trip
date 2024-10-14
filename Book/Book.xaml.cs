@@ -96,11 +96,11 @@ public partial class Book : Window
         if (DataContext is BookViewModel vm && vm.DateRange != null && vm.House != null)
         {
             var region = (loc.SelectedValue as ComboBoxItem)?.Content.ToString();
-            var house = string.Concat(vm.House.SelectedHouse?.Classification, vm.House.SelectedHouse?.Name);
+            var forestRetreat = string.Concat(vm.House.SelectedHouse?.Classification, vm.House.SelectedHouse?.Name);
 
             DateTime startDate = vm.DateRange.StartDate, endDate = vm.DateRange.EndDate;
 
-            if (!string.IsNullOrEmpty(region) && houses.TryGetValue(region, out List<HouseItem>? list) && list.Any(e => e.Name.Equals(house)))
+            if (!string.IsNullOrEmpty(region) && houses.TryGetValue(region, out List<HouseItem>? list) && list.Any(e => e.Name.Equals(forestRetreat)))
             {
                 using (MemoryStream ms = new(Properties.Resources.BINGO))
                 {
@@ -110,7 +110,16 @@ public partial class Book : Window
                         {
                             var rs = new ReservationService(Properties.Resources.DOMAIN);
 
-                            await rs.EnterInfomationAsync(NumberOfPeople, region, house, startDate, endDate);
+                            var rm = new Reservation
+                            {
+                                StartDate = startDate,
+                                EndDate = endDate,
+                                NumberOfPeople = NumberOfPeople,
+                                ForestRetreat = forestRetreat,
+                                CabinName = "[숲속의집]밤티골3",
+                                Region = region
+                            };
+                            await rs.EnterInfomationAsync(rm);
                         });
                         sp.PlaySync();
                     }
