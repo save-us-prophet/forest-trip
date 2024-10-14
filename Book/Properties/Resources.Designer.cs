@@ -192,5 +192,23 @@ namespace ShareInvest.Properties {
                 return ResourceManager.GetString("USERAGENT", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   user-data-dir=과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string USERDATA {
+            get {
+                return ResourceManager.GetString("USERDATA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Google\\Chrome\\User Data과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string USERPATH {
+            get {
+                return ResourceManager.GetString("USERPATH", resourceCulture);
+            }
+        }
     }
 }

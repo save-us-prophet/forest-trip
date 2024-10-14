@@ -160,4 +160,10 @@
   <data name="DOMAIN" xml:space="preserve">
     <value>https://www.foresttrip.go.kr/main.do</value>
   </data>
+  <data name="USERDATA" xml:space="preserve">
+    <value>user-data-dir=</value>
+  </data>
+  <data name="USERPATH" xml:space="preserve">
+    <value>Google\\Chrome\\User Data</value>
+  </data>
 </root>
