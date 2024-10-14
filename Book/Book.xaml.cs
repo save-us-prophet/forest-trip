@@ -108,10 +108,9 @@ public partial class Book : Window
                     {
                         _ = Task.Run(async () =>
                         {
-                            using (var rs = new ReservationService())
-                            {
-                                await rs.StartProcessAsync(Properties.Resources.DOMAIN, NumberOfPeople, region, house, startDate, endDate);
-                            }
+                            var rs = new ReservationService(Properties.Resources.DOMAIN);
+
+                            await rs.EnterInfomationAsync(NumberOfPeople, region, house, startDate, endDate);
                         });
                         sp.PlaySync();
                     }
