@@ -5,6 +5,9 @@ using OpenQA.Selenium.Support.UI;
 using ShareInvest.Models;
 
 using System.IO;
+using System.Net.Http;
+
+using Tesseract;
 
 namespace ShareInvest;
 
@@ -145,9 +148,45 @@ class ReservationService : IDisposable
                         {
                             if (await ChooseCabinAsync(rm.CabinName))
                             {
-                                await Task.Delay(0x200);
-
+                                await OpticalCharacterRecognitionAsync();
                                 await Reserve();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    async Task OpticalCharacterRecognitionAsync(int commandTimeout = 0x400)
+    {
+        var dw = new WebDriverWait(driver, TimeSpan.FromMilliseconds(commandTimeout));
+
+        await Task.Delay(0x200);
+
+        using (var client = new HttpClient())
+        {
+            var res = await client.GetAsync(new Uri(dw.Until(e => e.FindElement(By.Id("captchaImg"))).GetAttribute("src")));
+
+            if (res.IsSuccessStatusCode)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await res.Content.CopyToAsync(ms);
+
+                    ms.Position = 0;
+
+                    using (var img = Pix.LoadFromMemory(ms.ToArray()))
+                    {
+                        using (var ocr = new TesseractEngine(@"./tessdata", "eng", EngineMode.TesseractOnly))
+                        {
+                            if (ocr.SetVariable("tessedit_char_whitelist", "0123456789"))
+                            {
+                                var page = ocr.Process(img);
+
+                                var captchaText = page.GetText().Trim();
+
+                                dw.Until(e => e.FindElement(By.Id("atmtcRsrvtPrvntChrct"))).SendKeys(captchaText);
                             }
                         }
                     }
@@ -159,6 +198,8 @@ class ReservationService : IDisposable
     async Task Reserve(int commandTimeout = 0x400)
     {
         var dw = new WebDriverWait(driver, TimeSpan.FromMilliseconds(commandTimeout));
+
+        await Task.Delay(0x200);
 
         dw.Until(e => e.FindElement(By.Id("arr_01")).FindElement(By.XPath(".."))).Click();
 
