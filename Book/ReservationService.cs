@@ -7,8 +7,6 @@ using ShareInvest.Models;
 using System.IO;
 using System.Net.Http;
 
-using Tesseract;
-
 namespace ShareInvest;
 
 class ReservationService : IDisposable
@@ -176,20 +174,7 @@ class ReservationService : IDisposable
 
                     ms.Position = 0;
 
-                    using (var img = Pix.LoadFromMemory(ms.ToArray()))
-                    {
-                        using (var ocr = new TesseractEngine(@"./tessdata", "eng", EngineMode.TesseractOnly))
-                        {
-                            if (ocr.SetVariable("tessedit_char_whitelist", "0123456789"))
-                            {
-                                var page = ocr.Process(img);
-
-                                var captchaText = page.GetText().Trim();
-
-                                dw.Until(e => e.FindElement(By.Id("atmtcRsrvtPrvntChrct"))).SendKeys(captchaText);
-                            }
-                        }
-                    }
+                    //dw.Until(e => e.FindElement(By.Id("atmtcRsrvtPrvntChrct"))).SendKeys("captchaText");
                 }
             }
         }
