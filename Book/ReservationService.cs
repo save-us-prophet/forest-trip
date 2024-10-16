@@ -6,6 +6,7 @@ using ShareInvest.Models;
 
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace ShareInvest;
 
@@ -162,19 +163,42 @@ class ReservationService : IDisposable
 
         await Task.Delay(0x200);
 
-        using (var client = new HttpClient())
+        var img = dw.Until(e => e.FindElement(By.Id("captchaImg")));
+
+        foreach (var div in img.FindElement(By.XPath("..")).FindElement(By.XPath("..")).FindElements(By.TagName("div")))
         {
-            var res = await client.GetAsync(new Uri(dw.Until(e => e.FindElement(By.Id("captchaImg"))).GetAttribute("src")));
-
-            if (res.IsSuccessStatusCode)
+            if ("sp_right".Equals(div.GetAttribute("class")))
             {
-                using (var ms = new MemoryStream())
+                foreach (var a in div.FindElements(By.TagName("a")))
                 {
-                    await res.Content.CopyToAsync(ms);
+                    if ("듣기".Equals(a.GetAttribute("title")))
+                    {
+                        a.Click();
 
-                    ms.Position = 0;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
 
-                    //dw.Until(e => e.FindElement(By.Id("atmtcRsrvtPrvntChrct"))).SendKeys("captchaText");
+        using (var content = new MultipartFormDataContent())
+        {
+            var imageContent = new ByteArrayContent(Convert.FromBase64String((string)((IJavaScriptExecutor)driver).ExecuteScript(Properties.Resources.CAPTURE, img)));
+
+            imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
+
+            content.Add(imageContent, "file", "captcha.png");
+
+            using (var client = new HttpClient())
+            {
+                var response = await client.PostAsync("http://localhost:8000", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var captchaText = await response.Content.ReadAsStringAsync();
+
+                    dw.Until(e => e.FindElement(By.Id("atmtcRsrvtPrvntChrct"))).SendKeys(captchaText);
                 }
             }
         }

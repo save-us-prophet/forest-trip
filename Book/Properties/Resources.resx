@@ -166,4 +166,7 @@
   <data name="USERPATH" xml:space="preserve">
     <value>Google\\Chrome\\User Data</value>
   </data>
+  <data name="CAPTURE" xml:space="preserve">
+    <value>var img=arguments[0];var canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;var ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,img.width,img.height);return canvas.toDataURL('image/png').substring(22);</value>
+  </data>
 </root>

@@ -71,6 +71,15 @@ namespace ShareInvest.Properties {
         }
         
         /// <summary>
+        ///   var img=arguments[0];var canvas=document.createElement(&apos;canvas&apos;);canvas.width=img.width;canvas.height=img.height;var ctx=canvas.getContext(&apos;2d&apos;);ctx.drawImage(img,0,0,img.width,img.height);return canvas.toDataURL(&apos;image/png&apos;).substring(22);과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string CAPTURE {
+            get {
+                return ResourceManager.GetString("CAPTURE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   System.Byte[] 형식의 지역화된 리소스를 찾습니다.
         /// </summary>
         internal static byte[] DATE {
