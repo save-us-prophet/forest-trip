@@ -70,6 +70,27 @@ class ReservationService : IDisposable
 
         if (clickComboBox("//*[@id=\"srch_frm\"]/div[1]/div[1]", matchWord: rm.Region, suffix: "//*[@id=\"srch_region\"]/ul/li"))
         {
+            foreach (var popup in driver.FindElements(By.ClassName("enterPopup")))
+            {
+                if (popup.GetAttribute("class").EndsWith("show"))
+                {
+                    foreach (var div in popup.FindElements(By.ClassName("ep_cookie_close")))
+                    {
+                        foreach (var a in div.FindElements(By.TagName("a")))
+                        {
+                            if ("day_close".Equals(a.GetAttribute("class")))
+                            {
+                                a.Click();
+
+                                break;
+                            }
+                        }
+                        await Task.Delay(0x100);
+                    }
+                    continue;
+                }
+            }
+
             if (clickComboBox("//*[@id=\"srch_frm\"]/div[2]/div[1]", matchWord: rm.ForestRetreat, suffix: "//*[@id=\"srch_rcfcl\"]/ul/li"))
             {
                 if (clickComboBox("//*[@id=\"srch_frm\"]/div[3]"))
@@ -192,7 +213,7 @@ class ReservationService : IDisposable
 
             using (var client = new HttpClient())
             {
-                var response = await client.PostAsync("http://localhost:8000", content);
+                var response = await client.PostAsync("http://localhost:15409", content);
 
                 if (response.IsSuccessStatusCode)
                 {

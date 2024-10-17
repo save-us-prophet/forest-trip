@@ -1,7 +1,9 @@
-﻿using Microsoft.Web.WebView2.Wpf;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Web.WebView2.Wpf;
 
 using Newtonsoft.Json;
 
+using ShareInvest.Data;
 using ShareInvest.EventHandler;
 using ShareInvest.Models;
 
@@ -150,26 +152,95 @@ class CoreWebView
                     var region = await webView.ExecuteScriptAsync(Properties.Resources.REGION);
                     var listHomeItems = await webView.ExecuteScriptAsync(Properties.Resources.HOUSE);
 
-                    if (string.IsNullOrEmpty(listHomeItems))
+                    if (!string.IsNullOrEmpty(listHomeItems))
                     {
-                        return;
-                    }
-                    region = region.Replace("\"", string.Empty);
+                        region = region.Replace("\"", string.Empty);
 
-                    foreach (var item in JsonConvert.DeserializeObject<List<HouseItem>>(listHomeItems) ?? [])
-                    {
-                        Send?.Invoke(this, new HouseArgs(new HouseItem
+                        using (var context = new ForestTripContext())
                         {
-                            Id = item.Id,
-                            Name = item.Name,
-                            Region = region
-                        }));
+                            foreach (var item in JsonConvert.DeserializeObject<List<ForestRetreat>>(listHomeItems) ?? [])
+                            {
+                                if (string.IsNullOrEmpty(item.Id)) continue;
+
+                                var resort = new ForestRetreat
+                                {
+                                    Id = item.Id,
+                                    Name = item.Name,
+                                    Region = region
+                                };
+
+                                if (context.ForestRetreat.Find(item.Id) is ForestRetreat fr)
+                                {
+                                    fr.Name = item.Name;
+                                    fr.Region = region;
+                                }
+                                else
+                                {
+                                    context.ForestRetreat.Add(resort);
+                                }
+                                Send?.Invoke(this, new HouseArgs(resort));
+                            }
+                            _ = context.SaveChanges();
+                        }
+                    }
+                    ForestRetreat? forestRetreat = null;
+
+                    try
+                    {
+                        var resort = await webView.ExecuteScriptAsync(Properties.Resources.RESORT);
+
+                        if (!string.IsNullOrEmpty(resort) && !"\"[]\"".Equals(resort) && !"null".Equals(resort))
+                        {
+                            foreach (var fr in JsonConvert.DeserializeObject<Region[]>(resort.Replace("\\\"", "\"")[1..^1]) ?? [])
+                            {
+                                if (!"산림휴양시설".Equals(fr.Title) || string.IsNullOrEmpty(fr.Text))
+                                {
+                                    continue;
+                                }
+
+                                using (var context = new ForestTripContext())
+                                {
+                                    forestRetreat = context.ForestRetreat.AsNoTracking().FirstOrDefault(e => !string.IsNullOrEmpty(e.Name) && e.Name.EndsWith(fr.Text));
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+
+                    try
+                    {
+                        var list = JsonConvert.DeserializeObject<List<string>>((await webView.ExecuteScriptAsync(Properties.Resources.CABIN)).Replace("\\\"", "\"")[1..^1]) ?? [];
+
+                        using (var context = new ForestTripContext())
+                        {
+                            foreach (var e in list)
+                            {
+                                var id = forestRetreat?.Id;
+                                var cabinName = e.Replace("사용가능 시설", string.Empty).Replace("\\n", string.Empty).Trim();
+
+                                if (!string.IsNullOrEmpty(id) && context.Cabin.Find(id, cabinName) is null)
+                                {
+                                    context.Cabin.Add(new Cabin
+                                    {
+                                        Id = id,
+                                        Name = cabinName,
+                                        Region = region
+                                    });
+                                }
+                            }
+                            _ = context.SaveChanges();
+                        }
+                    }
+                    catch (Exception)
+                    {
+
                     }
                 }
             }
-#if DEBUG
-            WriteLine(sender, nameof(webView.CoreWebView2.WebResourceResponseReceived), args);
-#endif            
         };
 
         webView.WebMessageReceived += (sender, args) =>
