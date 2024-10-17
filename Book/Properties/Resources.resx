@@ -169,4 +169,13 @@
   <data name="CAPTURE" xml:space="preserve">
     <value>var img=arguments[0];var canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;var ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,img.width,img.height);return canvas.toDataURL('image/png').substring(22);</value>
   </data>
+  <data name="DB" xml:space="preserve">
+    <value>Data Source=Resources/app.db</value>
+  </data>
+  <data name="RESORT" xml:space="preserve">
+    <value>const txtContainer=document.getElementById('txt');if(txtContainer){const listItems=txtContainer.querySelector('ul').children;const result=Array.from(listItems).map(li=&gt;{const title=li.querySelector('.st_tit')?li.querySelector('.st_tit').innerText:'';const text=li.querySelector('.st_txt')?li.querySelector('.st_txt').innerText:'';return{title,text};});JSON.stringify(result);}else{JSON.stringify([]);}</value>
+  </data>
+  <data name="CABIN" xml:space="preserve">
+    <value>const listBoxes=document.querySelectorAll('.list_box');const results=Array.from(listBoxes).map(box=&gt;{const opt1=box.querySelector('.opt1');if(opt1){return opt1.innerText.replace(/\\n/g,' ');}return null;}).filter(text=&gt;text!==null);JSON.stringify(results);</value>
+  </data>
 </root>

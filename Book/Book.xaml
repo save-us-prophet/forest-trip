@@ -99,7 +99,7 @@
                         </Button.Template>
                     </Button>
 
-                    <DatePicker Width="296" Margin="8,4" Padding="4" MouseLeftButtonDown="OnClick">
+                    <DatePicker Width="296" Margin="8,4" Padding="4" MouseLeftButtonDown="OnClick" Loaded="OnLoaded">
                         <DatePicker.Template>
                             <ControlTemplate TargetType="DatePicker">
                                 <Grid>

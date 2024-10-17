@@ -1,4 +1,7 @@
-﻿using ShareInvest.EventHandler;
+﻿using Microsoft.EntityFrameworkCore;
+
+using ShareInvest.Data;
+using ShareInvest.EventHandler;
 using ShareInvest.Models;
 using ShareInvest.ViewModels;
 
@@ -11,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace ShareInvest;
 
@@ -28,7 +32,7 @@ public partial class Book : Window
         {
             switch (e)
             {
-                case HouseArgs h when houses.TryGetValue(h.Item.Region, out List<HouseItem>? list):
+                case HouseArgs h when !string.IsNullOrEmpty(h.Item.Region) && houses.TryGetValue(h.Item.Region, out List<ForestRetreat>? list):
 
                     if (!string.IsNullOrEmpty(h.Item.Id) && !list.Any(e => h.Item.Id.Equals(e.Id)))
                     {
@@ -46,7 +50,15 @@ public partial class Book : Window
 
                     if (houses.ContainsKey(l.Item.LocName) is false)
                     {
-                        houses[l.Item.LocName] = [];
+                        ForestRetreat[] resorts = [];
+
+                        using (var context = new ForestTripContext())
+                        {
+                            resorts = [.. from fr in context.ForestRetreat.AsNoTracking()
+                                          where l.Item.LocName.Equals(fr.Region)
+                                          select fr];
+                        }
+                        houses[l.Item.LocName] = new List<ForestRetreat>(resorts);
                     }
                     return;
             }
@@ -60,7 +72,7 @@ public partial class Book : Window
         {
             var key = (loc.SelectedValue as ComboBoxItem)?.Content.ToString();
 
-            if (!string.IsNullOrEmpty(key) && houses.TryGetValue(key, out List<HouseItem>? items) && items.Count > 0)
+            if (!string.IsNullOrEmpty(key) && houses.TryGetValue(key, out List<ForestRetreat>? items) && items.Count > 0)
             {
                 var page = new RegionHouse(items)
                 {
@@ -100,12 +112,13 @@ public partial class Book : Window
 
             DateTime startDate = vm.DateRange.StartDate, endDate = vm.DateRange.EndDate;
 
-            if (!string.IsNullOrEmpty(region) && houses.TryGetValue(region, out List<HouseItem>? list) && list.Any(e => e.Name.Equals(forestRetreat)))
+            if (!string.IsNullOrEmpty(region) && houses.TryGetValue(region, out List<ForestRetreat>? list) && list.Any(e => !string.IsNullOrEmpty(e.Name) && e.Name.Equals(forestRetreat)))
             {
                 using (MemoryStream ms = new(Properties.Resources.BINGO))
                 {
                     using (SoundPlayer sp = new(ms))
                     {
+                        /*
                         _ = Task.Run(async () =>
                         {
                             var rs = new ReservationService(Properties.Resources.DOMAIN);
@@ -121,10 +134,25 @@ public partial class Book : Window
                             };
                             await rs.EnterInfomationAsync(rm);
                         });
+                        */
                         sp.PlaySync();
                     }
                 }
             }
+        }
+    }
+
+    void OnLoaded(object sender, RoutedEventArgs _)
+    {
+        if (sender is DatePicker picker && FindVisualChild<Popup>(picker) is Popup popup)
+        {
+            popup.Opened += (sender, _) =>
+            {
+                if (sender is Popup p && p.Child is Border { Child: Calendar calendar })
+                {
+                    calendar.DisplayDateStart = DateTime.Today;
+                }
+            };
         }
     }
 
@@ -202,6 +230,30 @@ public partial class Book : Window
         GC.Collect();
     }
 
+    T? FindVisualChild<T>(DependencyObject? parent) where T : DependencyObject
+    {
+        if (parent == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+
+            if (child is T obj)
+            {
+                return obj;
+            }
+
+            if (FindVisualChild<T>(child) is T childOfChild)
+            {
+                return childOfChild;
+            }
+        }
+        return null;
+    }
+
     int NumberOfPeople
     {
         get; set;
@@ -210,5 +262,5 @@ public partial class Book : Window
 
     readonly CoreWebView webView;
 
-    readonly Dictionary<string, List<HouseItem>> houses = [];
+    readonly Dictionary<string, List<ForestRetreat>> houses = [];
 }
