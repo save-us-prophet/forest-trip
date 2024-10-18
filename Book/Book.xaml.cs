@@ -137,23 +137,28 @@ public partial class Book : Window
                     {
                         using (var context = new ForestTripContext())
                         {
+                            var reservation = new Reservation
+                            {
+                                NumberOfPeople = NumberOfPeople,
+                                StartDate = startDate,
+                                EndDate = endDate,
+                                Region = region,
+                                CabinName = page.SelectedCabin?.Name,
+                                ForestRetreat = forestRetreat
+                            };
+
                             if (context.Reservations.Find(startDate, forestRetreat, page.SelectedCabin?.Name) is Reservation rs)
                             {
-                                rs.EndDate = endDate;
-                                rs.Region = region;
-                                rs.NumberOfPeople = NumberOfPeople;
+                                if ((this.reservation.DataContext as ReservationViewModel)?.Reservations?.Remove(reservation) is bool)
+                                {
+                                    rs.EndDate = endDate;
+                                    rs.Region = region;
+                                    rs.NumberOfPeople = NumberOfPeople;
+                                }
                             }
                             else
                             {
-                                context.Reservations.Add(new Reservation
-                                {
-                                    NumberOfPeople = NumberOfPeople,
-                                    StartDate = startDate,
-                                    EndDate = endDate,
-                                    Region = region,
-                                    CabinName = page.SelectedCabin?.Name,
-                                    ForestRetreat = forestRetreat
-                                });
+                                context.Reservations.Add(reservation);
                             }
 
                             if (context.SaveChanges() > 0)
@@ -165,6 +170,18 @@ public partial class Book : Window
                                         sp.PlaySync();
                                     }
                                 }
+                                reservation.Resort = new House
+                                {
+                                    Name = forestRetreat?[1..],
+                                    Classification = $"{forestRetreat?[0]}",
+                                    BackgroudColor = (new BrushConverter().ConvertFromString(forestRetreat?[0] switch
+                                    {
+                                        '공' => "#5468C7",
+                                        '국' => "#008504",
+                                        _ => "#AB49AF"
+                                    }) as SolidColorBrush) ?? Brushes.Navy
+                                };
+                                (this.reservation.DataContext as ReservationViewModel)?.Reservations?.Add(reservation);
                             }
                         }
                     }
