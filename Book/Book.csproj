@@ -2,10 +2,11 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net8.0-windows10.0.17763.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
 		<UseWPF>true</UseWPF>
+		<Title>자연휴양림</Title>
+		<Nullable>enable</Nullable>
+		<TargetFramework>net8.0-windows10.0.17763.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
 		<SupportedOSPlatformVersion>8.0</SupportedOSPlatformVersion>
 		<AssemblyName>ForestTrip</AssemblyName>
 		<RootNamespace>ShareInvest</RootNamespace>
@@ -14,6 +15,7 @@
 		<Company>Share Corp.</Company>
 		<Copyright>Copyright ⓒ 2024, ShareInvest Corp.</Copyright>
 		<PackageProjectUrl>https://github.com/book-using-macro</PackageProjectUrl>
+		<Product>자연휴양림</Product>
 		<Version>1.0.0.0</Version>
 	</PropertyGroup>
 
@@ -69,9 +71,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Resources\app.db">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
+		<None Update="Resources\app.db">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 </Project>

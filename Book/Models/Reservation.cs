@@ -1,33 +1,39 @@
-﻿namespace ShareInvest.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
-class Reservation
+namespace ShareInvest.Models;
+
+public class Reservation
 {
-    internal int NumberOfPeople
+    public int NumberOfPeople
     {
         get; set;
     }
 
-    internal string? Region
+    [Required]
+    public string? Region
     {
         get; set;
     }
 
-    internal string? ForestRetreat
+    [Key]
+    public string? ForestRetreat
     {
         get; set;
     }
 
-    internal string? CabinName
+    [Key]
+    public string? CabinName
     {
         get; set;
     }
 
-    internal DateTime StartDate
+    [Key]
+    public DateTime StartDate
     {
         get; set;
     }
 
-    internal DateTime EndDate
+    public DateTime EndDate
     {
         get; set;
     }

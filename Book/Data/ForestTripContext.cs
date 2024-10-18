@@ -16,6 +16,11 @@ public class ForestTripContext : DbContext
         get; set;
     }
 
+    public DbSet<Reservation> Reservations
+    {
+        get; set;
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder
@@ -28,6 +33,18 @@ public class ForestTripContext : DbContext
                     keyExpression.Name
                 });
                 buildAction.ToTable(nameof(Cabin));
+            })
+
+            .Entity<Reservation>(buildAction =>
+            {
+                buildAction.HasKey(keyExpression => new
+                {
+                    keyExpression.StartDate,
+                    keyExpression.ForestRetreat,
+                    keyExpression.CabinName
+                });
+                buildAction.Property(propertyExpression => propertyExpression.Region).IsRequired();
+                buildAction.ToTable(nameof(Reservations));
             })
 
             .Entity<ForestRetreat>(buildAction =>

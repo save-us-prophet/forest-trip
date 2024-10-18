@@ -114,28 +114,59 @@ public partial class Book : Window
 
             if (!string.IsNullOrEmpty(region) && houses.TryGetValue(region, out List<ForestRetreat>? list) && list.Any(e => !string.IsNullOrEmpty(e.Name) && e.Name.Equals(forestRetreat)))
             {
-                using (MemoryStream ms = new(Properties.Resources.BINGO))
-                {
-                    using (SoundPlayer sp = new(ms))
-                    {
-                        /*
-                        _ = Task.Run(async () =>
-                        {
-                            var rs = new ReservationService(Properties.Resources.DOMAIN);
+                Cabin[] cabins = [];
 
-                            var rm = new Reservation
+                using (var context = new ForestTripContext())
+                {
+                    if (context.ForestRetreat.AsNoTracking().FirstOrDefault(e => forestRetreat.Equals(e.Name)) is ForestRetreat fr && !string.IsNullOrEmpty(fr.Id))
+                    {
+                        cabins = [.. from cabin in context.Cabin.AsNoTracking()
+                                     where  fr.Id.Equals(cabin.Id)
+                                     select cabin];
+                    }
+                }
+
+                if (cabins.Length > 0)
+                {
+                    var page = new ResortCabin(cabins)
+                    {
+                        Owner = this
+                    };
+
+                    if (page != null && page.ShowDialog() is bool result && result)
+                    {
+                        using (var context = new ForestTripContext())
+                        {
+                            if (context.Reservations.Find(startDate, forestRetreat, page.SelectedCabin?.Name) is Reservation rs)
                             {
-                                StartDate = startDate,
-                                EndDate = endDate,
-                                NumberOfPeople = NumberOfPeople,
-                                ForestRetreat = forestRetreat,
-                                CabinName = "[숲속의집]밤티골3",
-                                Region = region
-                            };
-                            await rs.EnterInfomationAsync(rm);
-                        });
-                        */
-                        sp.PlaySync();
+                                rs.EndDate = endDate;
+                                rs.Region = region;
+                                rs.NumberOfPeople = NumberOfPeople;
+                            }
+                            else
+                            {
+                                context.Reservations.Add(new Reservation
+                                {
+                                    NumberOfPeople = NumberOfPeople,
+                                    StartDate = startDate,
+                                    EndDate = endDate,
+                                    Region = region,
+                                    CabinName = page.SelectedCabin?.Name,
+                                    ForestRetreat = forestRetreat
+                                });
+                            }
+
+                            if (context.SaveChanges() > 0)
+                            {
+                                using (MemoryStream ms = new(Properties.Resources.BINGO))
+                                {
+                                    using (SoundPlayer sp = new(ms))
+                                    {
+                                        sp.PlaySync();
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
