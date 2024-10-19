@@ -173,9 +173,12 @@
     <value>Data Source=Resources/app.db</value>
   </data>
   <data name="RESORT" xml:space="preserve">
-    <value>const txtContainer=document.getElementById('txt');if(txtContainer){const listItems=txtContainer.querySelector('ul').children;const result=Array.from(listItems).map(li=&gt;{const title=li.querySelector('.st_tit')?li.querySelector('.st_tit').innerText:'';const text=li.querySelector('.st_txt')?li.querySelector('.st_txt').innerText:'';return{title,text};});JSON.stringify(result);}else{JSON.stringify([]);}</value>
+    <value>var txtContainer=document.getElementById('txt');if(txtContainer){var listItems=txtContainer.querySelector('ul').children;var result=Array.from(listItems).map(li=&gt;{var title=li.querySelector('.st_tit')?li.querySelector('.st_tit').innerText:'';var text=li.querySelector('.st_txt')?li.querySelector('.st_txt').innerText:'';return{title,text};});JSON.stringify(result);}else{JSON.stringify([]);}</value>
   </data>
   <data name="CABIN" xml:space="preserve">
-    <value>const listBoxes=document.querySelectorAll('.list_box');const results=Array.from(listBoxes).map(box=&gt;{const opt1=box.querySelector('.opt1');if(opt1){return opt1.innerText.replace(/\\n/g,' ');}return null;}).filter(text=&gt;text!==null);JSON.stringify(results);</value>
+    <value>var listBoxes=document.querySelectorAll('.list_box');var results=Array.from(listBoxes).map(box=&gt;{const opt1=box.querySelector('.opt1');if(opt1){return  opt1.textContent.replace(/\s+/g,' ').trim();}return null;}).filter(text=&gt;text!==null);JSON.stringify(results);</value>
+  </data>
+  <data name="HEADLESS" xml:space="preserve">
+    <value>--headless=old</value>
   </data>
 </root>

@@ -216,6 +216,8 @@
 
             </Border>
 
+            <local:ReservationContainer x:Name="reservation" DockPanel.Dock="Right" MinWidth="256" MaxWidth="320" />
+
             <wv2:WebView2 Name="webView2" />
 
         </DockPanel>

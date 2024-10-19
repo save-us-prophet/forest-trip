@@ -200,7 +200,7 @@ class CoreWebView
 
                                 using (var context = new ForestTripContext())
                                 {
-                                    forestRetreat = context.ForestRetreat.AsNoTracking().FirstOrDefault(e => !string.IsNullOrEmpty(e.Name) && e.Name.EndsWith(fr.Text));
+                                    forestRetreat = context.ForestRetreat.AsNoTracking().FirstOrDefault(e => !string.IsNullOrEmpty(e.Name) && (e.Name.EndsWith(fr.Text) || e.Name.EndsWith(fr.Text.Replace(" ", string.Empty))));
                                 }
                                 break;
                             }
@@ -213,26 +213,31 @@ class CoreWebView
 
                     try
                     {
-                        var list = JsonConvert.DeserializeObject<List<string>>((await webView.ExecuteScriptAsync(Properties.Resources.CABIN)).Replace("\\\"", "\"")[1..^1]) ?? [];
+                        var cabin = await webView.ExecuteScriptAsync(Properties.Resources.CABIN);
 
-                        using (var context = new ForestTripContext())
+                        if (string.IsNullOrEmpty(cabin) is false && cabin.Length > 6)
                         {
-                            foreach (var e in list)
-                            {
-                                var id = forestRetreat?.Id;
-                                var cabinName = e.Replace("사용가능 시설", string.Empty).Replace("\\n", string.Empty).Trim();
+                            var list = JsonConvert.DeserializeObject<List<string>>(cabin.Replace("\\\"", "\"")[1..^1]) ?? [];
 
-                                if (!string.IsNullOrEmpty(id) && context.Cabin.Find(id, cabinName) is null)
+                            using (var context = new ForestTripContext())
+                            {
+                                foreach (var e in list)
                                 {
-                                    context.Cabin.Add(new Cabin
+                                    var id = forestRetreat?.Id;
+                                    var cabinName = e.Replace("사용가능 시설", string.Empty).Replace("\\n", string.Empty).Trim();
+
+                                    if (!string.IsNullOrEmpty(id) && context.Cabin.Find(id, cabinName) is null)
                                     {
-                                        Id = id,
-                                        Name = cabinName,
-                                        Region = region
-                                    });
+                                        context.Cabin.Add(new Cabin
+                                        {
+                                            Id = id,
+                                            Name = cabinName,
+                                            Region = region
+                                        });
+                                    }
                                 }
+                                _ = context.SaveChanges();
                             }
-                            _ = context.SaveChanges();
                         }
                     }
                     catch (Exception)

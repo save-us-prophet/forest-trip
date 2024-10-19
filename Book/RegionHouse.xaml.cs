@@ -38,6 +38,6 @@ partial class RegionHouse : Window
 
     internal House? SelectedHouse
     {
-        get; set;
+        get; private set;
     }
 }

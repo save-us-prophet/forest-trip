@@ -114,28 +114,76 @@ public partial class Book : Window
 
             if (!string.IsNullOrEmpty(region) && houses.TryGetValue(region, out List<ForestRetreat>? list) && list.Any(e => !string.IsNullOrEmpty(e.Name) && e.Name.Equals(forestRetreat)))
             {
-                using (MemoryStream ms = new(Properties.Resources.BINGO))
-                {
-                    using (SoundPlayer sp = new(ms))
-                    {
-                        /*
-                        _ = Task.Run(async () =>
-                        {
-                            var rs = new ReservationService(Properties.Resources.DOMAIN);
+                Cabin[] cabins = [];
 
-                            var rm = new Reservation
+                using (var context = new ForestTripContext())
+                {
+                    if (context.ForestRetreat.AsNoTracking().FirstOrDefault(e => forestRetreat.Equals(e.Name)) is ForestRetreat fr && !string.IsNullOrEmpty(fr.Id))
+                    {
+                        cabins = [.. from cabin in context.Cabin.AsNoTracking()
+                                     where  fr.Id.Equals(cabin.Id)
+                                     select cabin];
+                    }
+                }
+
+                if (cabins.Length > 0)
+                {
+                    var page = new ResortCabin(cabins)
+                    {
+                        Owner = this
+                    };
+
+                    if (page != null && page.ShowDialog() is bool result && result)
+                    {
+                        using (var context = new ForestTripContext())
+                        {
+                            var reservation = new Reservation
                             {
+                                NumberOfPeople = NumberOfPeople,
                                 StartDate = startDate,
                                 EndDate = endDate,
-                                NumberOfPeople = NumberOfPeople,
-                                ForestRetreat = forestRetreat,
-                                CabinName = "[숲속의집]밤티골3",
-                                Region = region
+                                Region = region,
+                                CabinName = page.SelectedCabin?.Name,
+                                ForestRetreat = forestRetreat
                             };
-                            await rs.EnterInfomationAsync(rm);
-                        });
-                        */
-                        sp.PlaySync();
+
+                            if (context.Reservations.Find(startDate, forestRetreat, page.SelectedCabin?.Name) is Reservation rs)
+                            {
+                                if ((this.reservation.DataContext as ReservationViewModel)?.Reservations?.Remove(reservation) is bool)
+                                {
+                                    rs.EndDate = endDate;
+                                    rs.Region = region;
+                                    rs.NumberOfPeople = NumberOfPeople;
+                                }
+                            }
+                            else
+                            {
+                                context.Reservations.Add(reservation);
+                            }
+
+                            if (context.SaveChanges() > 0)
+                            {
+                                using (MemoryStream ms = new(Properties.Resources.BINGO))
+                                {
+                                    using (SoundPlayer sp = new(ms))
+                                    {
+                                        sp.PlaySync();
+                                    }
+                                }
+                                reservation.Resort = new House
+                                {
+                                    Name = forestRetreat?[1..],
+                                    Classification = $"{forestRetreat?[0]}",
+                                    BackgroudColor = (new BrushConverter().ConvertFromString(forestRetreat?[0] switch
+                                    {
+                                        '공' => "#5468C7",
+                                        '국' => "#008504",
+                                        _ => "#AB49AF"
+                                    }) as SolidColorBrush) ?? Brushes.Navy
+                                };
+                                (this.reservation.DataContext as ReservationViewModel)?.Reservations?.Add(reservation);
+                            }
+                        }
                     }
                 }
             }

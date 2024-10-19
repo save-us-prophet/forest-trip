@@ -25,6 +25,8 @@ class ReservationService : IDisposable
         {
             foreach (var arg in args) this.args.Enqueue(arg);
         }
+        chromeService.HideCommandPromptWindow = true;
+
         var chromeOption = new ChromeOptions
         {
 
@@ -40,7 +42,7 @@ class ReservationService : IDisposable
         driver.Navigate().GoToUrl(url);
     }
 
-    internal async Task EnterInfomationAsync(Reservation rm, int commandTimeout = 0x100)
+    internal async Task<Reservation?> EnterInfomationAsync(Reservation rm, int commandTimeout = 0x100)
     {
         bool clickComboBox(string prefix, string? suffix = null, string? matchWord = null)
         {
@@ -74,18 +76,25 @@ class ReservationService : IDisposable
             {
                 if (popup.GetAttribute("class").EndsWith("show"))
                 {
-                    foreach (var div in popup.FindElements(By.ClassName("ep_cookie_close")))
+                    try
                     {
-                        foreach (var a in div.FindElements(By.TagName("a")))
+                        foreach (var div in popup.FindElements(By.ClassName("ep_cookie_close")))
                         {
-                            if ("day_close".Equals(a.GetAttribute("class")))
+                            foreach (var a in div.FindElements(By.TagName("a")))
                             {
-                                a.Click();
+                                if ("day_close".Equals(a.GetAttribute("class")))
+                                {
+                                    a.Click();
 
-                                break;
+                                    break;
+                                }
                             }
+                            await Task.Delay(0x100);
                         }
-                        await Task.Delay(0x100);
+                    }
+                    catch (ElementClickInterceptedException)
+                    {
+
                     }
                     continue;
                 }
@@ -160,6 +169,38 @@ class ReservationService : IDisposable
                     {
                         await Task.Delay(0x200);
 
+                        if (driver.WindowHandles.Count > 1)
+                        {
+                            string originalHandle = driver.CurrentWindowHandle;
+
+                            try
+                            {
+                                foreach (var handle in driver.WindowHandles)
+                                {
+                                    if (originalHandle.Equals(handle))
+                                    {
+                                        continue;
+                                    }
+
+                                    foreach (var div in driver.SwitchTo().Window(handle).FindElement(By.Id("mainContent")).FindElements(By.ClassName("cont_login")))
+                                    {
+                                        foreach (var e in div.FindElements(By.TagName(nameof(div))))
+                                        {
+                                            if ("login_kakaomail".Equals(e.GetAttribute("class"))) return null;
+                                        }
+                                    }
+                                }
+                            }
+                            catch (NoSuchElementException)
+                            {
+
+                            }
+                            finally
+                            {
+                                driver.SwitchTo().Window(originalHandle);
+                            }
+                        }
+
                         try
                         {
                             _ = driver.FindElement(By.Id("searchResultEmpty"));
@@ -170,12 +211,15 @@ class ReservationService : IDisposable
                             {
                                 await OpticalCharacterRecognitionAsync();
                                 await Reserve();
+
+                                rm.Result = true;
                             }
                         }
                     }
                 }
             }
         }
+        return rm;
     }
 
     async Task OpticalCharacterRecognitionAsync(int commandTimeout = 0x400)

@@ -71,7 +71,7 @@ namespace ShareInvest.Properties {
         }
         
         /// <summary>
-        ///   const listBoxes=document.querySelectorAll(&apos;.list_box&apos;);const results=Array.from(listBoxes).map(box=&gt;{const opt1=box.querySelector(&apos;.opt1&apos;);if(opt1){return opt1.innerText.replace(/\\n/g,&apos; &apos;);}return null;}).filter(text=&gt;text!==null);JSON.stringify(results);과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   var listBoxes=document.querySelectorAll(&apos;.list_box&apos;);var results=Array.from(listBoxes).map(box=&gt;{const opt1=box.querySelector(&apos;.opt1&apos;);if(opt1){return  opt1.textContent.replace(/\s+/g,&apos; &apos;).trim();}return null;}).filter(text=&gt;text!==null);JSON.stringify(results);과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string CABIN {
             get {
@@ -113,6 +113,15 @@ namespace ShareInvest.Properties {
         internal static string DOMAIN {
             get {
                 return ResourceManager.GetString("DOMAIN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   --headless=old과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string HEADLESS {
+            get {
+                return ResourceManager.GetString("HEADLESS", resourceCulture);
             }
         }
         
@@ -203,7 +212,7 @@ namespace ShareInvest.Properties {
         }
         
         /// <summary>
-        ///   const txtContainer=document.getElementById(&apos;txt&apos;);if(txtContainer){const listItems=txtContainer.querySelector(&apos;ul&apos;).children;const result=Array.from(listItems).map(li=&gt;{const title=li.querySelector(&apos;.st_tit&apos;)?li.querySelector(&apos;.st_tit&apos;).innerText:&apos;&apos;;const text=li.querySelector(&apos;.st_txt&apos;)?li.querySelector(&apos;.st_txt&apos;).innerText:&apos;&apos;;return{title,text};});JSON.stringify(result);}else{JSON.stringify([]);}과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   var txtContainer=document.getElementById(&apos;txt&apos;);if(txtContainer){var listItems=txtContainer.querySelector(&apos;ul&apos;).children;var result=Array.from(listItems).map(li=&gt;{var title=li.querySelector(&apos;.st_tit&apos;)?li.querySelector(&apos;.st_tit&apos;).innerText:&apos;&apos;;var text=li.querySelector(&apos;.st_txt&apos;)?li.querySelector(&apos;.st_txt&apos;).innerText:&apos;&apos;;return{title,text};});JSON.stringify(result);}else{JSON.stringify([]);}과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string RESORT {
             get {
