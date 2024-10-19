@@ -178,4 +178,7 @@
   <data name="CABIN" xml:space="preserve">
     <value>var listBoxes=document.querySelectorAll('.list_box');var results=Array.from(listBoxes).map(box=&gt;{const opt1=box.querySelector('.opt1');if(opt1){return  opt1.textContent.replace(/\s+/g,' ').trim();}return null;}).filter(text=&gt;text!==null);JSON.stringify(results);</value>
   </data>
+  <data name="HEADLESS" xml:space="preserve">
+    <value>--headless=old</value>
+  </data>
 </root>

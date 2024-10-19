@@ -1,10 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShareInvest.Models;
 
-public class Reservation
+public class Reservation : INotifyPropertyChanged
 {
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     public int NumberOfPeople
     {
         get; set;
@@ -54,6 +57,25 @@ public class Reservation
     [NotMapped]
     public House? Resort
     {
+        set
+        {
+            resort = value;
+
+            OnPropertyChanged(nameof(Resort));
+        }
+        get => resort;
+    }
+
+    [NotMapped]
+    public bool Result
+    {
         get; set;
     }
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    House? resort;
 }

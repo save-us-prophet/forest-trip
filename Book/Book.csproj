@@ -43,7 +43,7 @@
 		<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Selenium.Support" Version="4.25.0" />
-		<PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="130.0.6723.5800" />
+		<PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="129.0.6668.10000" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -11,36 +11,46 @@
     <Grid>
         <Border CornerRadius="16" BorderBrush="#22AA86" BorderThickness="2" Margin="6,6,8,0" Padding="0,24,0,16">
             <DockPanel>
-                <Button DockPanel.Dock="Bottom" MaxHeight="42" Margin="16,0" Click="OnClick">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
+                <ToggleButton x:Name="btn" DockPanel.Dock="Bottom" MaxHeight="42" Margin="16,0">
+                    <ToggleButton.Template>
+                        <ControlTemplate TargetType="ToggleButton">
                             <Border x:Name="BorderElement" CornerRadius="8" Background="#294A8C">
-                                <TextBlock Text="시작" Padding="8" Foreground="GhostWhite" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <TextBlock x:Name="ToggleBtnText" Text="시작" Padding="8" Foreground="GhostWhite" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
 
                             <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="False">
+                                    <Setter TargetName="BorderElement" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect ShadowDepth="4" BlurRadius="8" Color="#000000" Opacity=".3"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="BorderElement" Property="Background" Value="#800000"/>
+                                    <Setter TargetName="ToggleBtnText" Property="Text" Value="중지"/>
+                                    <Setter TargetName="BorderElement" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect ShadowDepth="2" BlurRadius="4" Color="#000000" Opacity=".5"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Cursor" Value="Hand" />
                                 </Trigger>
-
-                                <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="BorderElement" Property="Background" Value="#1E3A5F"/>
-                                </Trigger>
-
-                                <Trigger Property="IsPressed" Value="False">
-                                    <Setter TargetName="BorderElement" Property="Background" Value="#294A8C"/>
-                                </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
-                    </Button.Template>
-                </Button>
+                    </ToggleButton.Template>
+                </ToggleButton>
 
                 <TextBlock Text="예약 일정" FontWeight="UltraBold" FontSize="22" FontFamily="Noto Sans Kr" HorizontalAlignment="Center" DockPanel.Dock="Top" />
 
-                <ListView x:Name="reservation" BorderThickness="0" Margin="4,12" HorizontalContentAlignment="Stretch">
+                <ListView x:Name="reservation" BorderThickness="0" Margin="4,12" HorizontalContentAlignment="Stretch" MouseDoubleClick="OnClick">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Border Padding="12,8" Margin="0,2" Background="GhostWhite" CornerRadius="8" >
+                            <Border Padding="12,8" Margin="0,2" BorderBrush="{Binding Resort.BorderBrush}" Background="GhostWhite" BorderThickness="1" CornerRadius="8" >
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <Border BorderThickness="1"

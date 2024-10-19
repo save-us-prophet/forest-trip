@@ -117,6 +117,15 @@ namespace ShareInvest.Properties {
         }
         
         /// <summary>
+        ///   --headless=old과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string HEADLESS {
+            get {
+                return ResourceManager.GetString("HEADLESS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   System.Byte[] 형식의 지역화된 리소스를 찾습니다.
         /// </summary>
         internal static byte[] HOME {
