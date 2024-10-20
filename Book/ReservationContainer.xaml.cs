@@ -52,10 +52,8 @@ public partial class ReservationContainer : UserControl
     }
 
     [SupportedOSPlatform("windows")]
-    async Task ExecuteAsync()
+    async Task ExecuteAsync(bool isSign = false)
     {
-        var isSign = false;
-
         foreach (Reservation reservation in reservation.Items)
         {
             if (!await IsPolicy(reservation.StartDate, reservation.Policy)) continue;
@@ -105,7 +103,7 @@ public partial class ReservationContainer : UserControl
 
         if (reservation.Items.Count > 0 && CancellationTokenSource?.Token.IsCancellationRequested is false)
         {
-            _ = Task.Run(ExecuteAsync);
+            _ = Task.Run(async () => await ExecuteAsync(isSign));
         }
         else
         {
