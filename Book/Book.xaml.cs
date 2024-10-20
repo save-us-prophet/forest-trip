@@ -5,9 +5,11 @@ using ShareInvest.EventHandler;
 using ShareInvest.Models;
 using ShareInvest.ViewModels;
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Media;
 using System.Runtime.Versioning;
 using System.Windows;
@@ -22,6 +24,40 @@ public partial class Book : Window
 {
     public Book()
     {
+        menu = new System.Windows.Forms.ContextMenuStrip
+        {
+            Cursor = System.Windows.Forms.Cursors.Hand
+        };
+        menu.Items.AddRange([
+            new System.Windows.Forms.ToolStripMenuItem
+            {
+                Name = nameof(Properties.Resources.EXIT),
+                Text = Properties.Resources.EXIT
+            }
+        ]);
+        menu.ItemClicked += (sender, e) =>
+        {
+            Visibility = Visibility.Hidden;
+
+            Close();
+        };
+        notifyIcon = new System.Windows.Forms.NotifyIcon
+        {
+            ContextMenuStrip = menu,
+            BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info,
+            Icon = Properties.Resources.ICON
+        };
+        notifyIcon.MouseDoubleClick += (sender, _) =>
+        {
+            if (!IsVisible)
+            {
+                Show();
+
+                WindowState = WindowState.Normal;
+
+                notifyIcon.Visible = false;
+            }
+        };
         InitializeComponent();
 
         webView = new CoreWebView(webView2);
@@ -61,7 +97,22 @@ public partial class Book : Window
                         houses[l.Item.LocName] = new List<ForestRetreat>(resorts);
                     }
                     return;
+
+                case IntervalArgs i when Math.Abs(i.Interval.TotalSeconds) > 5:
+
+                    using (MemoryStream ms = new(Properties.Resources.BEEP))
+                    {
+                        using (SoundPlayer sp = new(ms))
+                        {
+                            sp.PlaySync();
+                        }
+                    }
+                    return;
             }
+        };
+        reservation.Send += (sender, e) =>
+        {
+            notifyIcon.Text = $"{e:G}";
         };
         _ = webView.OnInitializedAsync(Properties.Resources.DOMAIN);
     }
@@ -114,6 +165,8 @@ public partial class Book : Window
 
             if (!string.IsNullOrEmpty(region) && houses.TryGetValue(region, out List<ForestRetreat>? list) && list.Any(e => !string.IsNullOrEmpty(e.Name) && e.Name.Equals(forestRetreat)))
             {
+                var policy = string.Empty;
+
                 Cabin[] cabins = [];
 
                 using (var context = new ForestTripContext())
@@ -123,6 +176,8 @@ public partial class Book : Window
                         cabins = [.. from cabin in context.Cabin.AsNoTracking()
                                      where  fr.Id.Equals(cabin.Id)
                                      select cabin];
+
+                        policy = context.Policy.AsNoTracking().FirstOrDefault(e => fr.Id.Equals(e.ResortId))?.Reservation;
                     }
                 }
 
@@ -139,6 +194,7 @@ public partial class Book : Window
                         {
                             var reservation = new Reservation
                             {
+                                Policy = policy,
                                 NumberOfPeople = NumberOfPeople,
                                 StartDate = startDate,
                                 EndDate = endDate,
@@ -154,6 +210,7 @@ public partial class Book : Window
                                     rs.EndDate = endDate;
                                     rs.Region = region;
                                     rs.NumberOfPeople = NumberOfPeople;
+                                    rs.Policy = policy;
                                 }
                             }
                             else
@@ -268,15 +325,15 @@ public partial class Book : Window
 
     void OnStateChanged(object sender, EventArgs _)
     {
-#if DEBUG
-        Debug.WriteLine(sender);
-#endif
+        if (WindowState.Minimized == WindowState)
+        {
+            notifyIcon.Visible = true;
+
+            Hide();
+        }
     }
 
-    void OnClosing(object _, CancelEventArgs e)
-    {
-        GC.Collect();
-    }
+    void OnClosing(object _, CancelEventArgs e) => GC.Collect();
 
     T? FindVisualChild<T>(DependencyObject? parent) where T : DependencyObject
     {
@@ -311,4 +368,7 @@ public partial class Book : Window
     readonly CoreWebView webView;
 
     readonly Dictionary<string, List<ForestRetreat>> houses = [];
+
+    readonly System.Windows.Forms.NotifyIcon notifyIcon;
+    readonly System.Windows.Forms.ContextMenuStrip menu;
 }

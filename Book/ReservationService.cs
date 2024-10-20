@@ -4,9 +4,12 @@ using OpenQA.Selenium.Support.UI;
 
 using ShareInvest.Models;
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace ShareInvest;
 
@@ -213,6 +216,10 @@ class ReservationService : IDisposable
                                 await Reserve();
 
                                 rm.Result = true;
+
+                                await Task.Delay(0x400);
+
+                                return rm;
                             }
                         }
                     }

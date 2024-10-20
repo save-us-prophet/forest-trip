@@ -7,9 +7,15 @@ using ShareInvest.Data;
 using ShareInvest.EventHandler;
 using ShareInvest.Models;
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ShareInvest;
 
@@ -149,6 +155,14 @@ class CoreWebView
 
                 if ("www-foresttrip-go-kr".Equals(name))
                 {
+                    if (args.Response.Headers.GetHeader("Date") is string date && DateTime.TryParseExact(date, "R", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime serverTime))
+                    {
+                        var interval = DateTime.Now - serverTime;
+#if DEBUG
+                        Debug.WriteLine(interval);
+#endif
+                        Send?.Invoke(this, new IntervalArgs(interval));
+                    }
                     var region = await webView.ExecuteScriptAsync(Properties.Resources.REGION);
                     var listHomeItems = await webView.ExecuteScriptAsync(Properties.Resources.HOUSE);
 
@@ -234,6 +248,68 @@ class CoreWebView
                                             Name = cabinName,
                                             Region = region
                                         });
+                                    }
+                                }
+                                _ = context.SaveChanges();
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+
+                    try
+                    {
+                        var policy = await webView.ExecuteScriptAsync(Properties.Resources.INFORMATION);
+
+                        if (string.IsNullOrEmpty(policy) is false && "\"[]\"".Equals(policy) is false)
+                        {
+                            StringBuilder sb = new();
+
+                            foreach (var character in policy.ToCharArray())
+                            {
+                                if (' '.Equals(character))
+                                {
+                                    continue;
+                                }
+                                sb.Append(character);
+                            }
+                            policy = sb.ToString().Replace("\n", string.Empty).Replace("\\", string.Empty).Replace("n", string.Empty);
+
+                            using (var context = new ForestTripContext())
+                            {
+                                foreach (var strArr in JsonConvert.DeserializeObject<IEnumerable<string[]>>(policy[1..^1]) ?? [])
+                                {
+                                    if (strArr.Length > 0)
+                                    {
+                                        var fr = context.ForestRetreat.AsNoTracking().FirstOrDefault(e => !string.IsNullOrEmpty(e.Name) && e.Name.Replace(" ", string.Empty).EndsWith(strArr[1]));
+
+                                        if (fr != null)
+                                        {
+                                            var e = context.Policy.Find(fr.Id);
+
+                                            if (e != null)
+                                            {
+                                                e.ResortName = strArr[1];
+                                                e.Reservation = string.IsNullOrEmpty(strArr[6]) ? strArr[5][1..] : strArr[6];
+                                                e.Cabin = "O".Equals(strArr[2]);
+                                                e.Campsite = "O".Equals(strArr[3]);
+                                                e.Wait = "O".Equals(strArr[4]);
+                                            }
+                                            else
+                                            {
+                                                context.Policy.Add(new Policy
+                                                {
+                                                    ResortName = strArr[1],
+                                                    Reservation = string.IsNullOrEmpty(strArr[6]) ? strArr[5][1..] : strArr[6],
+                                                    Cabin = "O".Equals(strArr[2]),
+                                                    Campsite = "O".Equals(strArr[3]),
+                                                    Wait = "O".Equals(strArr[4]),
+                                                    ResortId = fr.Id
+                                                });
+                                            }
+                                        }
                                     }
                                 }
                                 _ = context.SaveChanges();

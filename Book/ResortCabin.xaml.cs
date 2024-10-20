@@ -1,5 +1,6 @@
 ﻿using ShareInvest.Models;
 
+using System.Collections.Generic;
 using System.Windows;
 
 namespace ShareInvest;

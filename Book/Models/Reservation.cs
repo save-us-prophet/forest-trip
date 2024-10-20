@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,6 +16,12 @@ public class Reservation : INotifyPropertyChanged
 
     [Required]
     public string? Region
+    {
+        get; set;
+    }
+
+    [Required]
+    public string? Policy
     {
         get; set;
     }
