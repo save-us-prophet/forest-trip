@@ -21,9 +21,21 @@ public class ForestTripContext : DbContext
         get; set;
     }
 
+    public DbSet<Policy> Policy
+    {
+        get; set;
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder
+
+            .Entity<Policy>(buildAction =>
+            {
+                buildAction.HasKey(keyExpression => keyExpression.ResortId);
+                buildAction.Property(propertyExpression => propertyExpression.ResortName).IsRequired();
+                buildAction.ToTable(nameof(Policy));
+            })
 
             .Entity<Cabin>(buildAction =>
             {
@@ -44,6 +56,7 @@ public class ForestTripContext : DbContext
                     keyExpression.CabinName
                 });
                 buildAction.Property(propertyExpression => propertyExpression.Region).IsRequired();
+                buildAction.Property(propertyExpression => propertyExpression.Policy).IsRequired();
                 buildAction.ToTable(nameof(Reservations));
             })
 

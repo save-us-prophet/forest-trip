@@ -1,6 +1,12 @@
 ﻿using ShareInvest.Models;
 using ShareInvest.ViewModels;
 
+using System;
+using System.IO;
+using System.Media;
+using System.Runtime.Versioning;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,6 +16,8 @@ namespace ShareInvest;
 
 public partial class ReservationContainer : UserControl
 {
+    public event EventHandler<DateTime>? Send;
+
     public ReservationContainer()
     {
         InitializeComponent();
@@ -26,7 +34,7 @@ public partial class ReservationContainer : UserControl
             {
                 CancellationTokenSource = new CancellationTokenSource();
 
-                _ = ExecuteAsync();
+                _ = Task.Run(async () => await ExecuteAsync());
             }
         };
         btn.Unchecked += (sender, e) =>
@@ -38,40 +46,75 @@ public partial class ReservationContainer : UserControl
         };
     }
 
+    CancellationTokenSource? CancellationTokenSource
+    {
+        get; set;
+    }
+
+    [SupportedOSPlatform("windows")]
     async Task ExecuteAsync()
     {
         var isSign = false;
 
-        while (reservation.Items.Count > 0 && CancellationTokenSource?.Token.IsCancellationRequested is false)
+        foreach (Reservation reservation in reservation.Items)
         {
-            foreach (Reservation reservation in reservation.Items)
+            if (!await IsPolicy(reservation.StartDate, reservation.Policy)) continue;
+
+            using (var rs = new ReservationService(Properties.Resources.DOMAIN, args: isSign ? [Properties.Resources.HEADLESS] : []))
             {
                 reservation.Resort!.BorderBrush = Brushes.DimGray;
 
-                using (var rs = new ReservationService(Properties.Resources.DOMAIN, args: isSign ? [Properties.Resources.HEADLESS] : []))
+                if (await rs.EnterInfomationAsync(reservation) is Reservation b)
                 {
-                    if (await rs.EnterInfomationAsync(reservation) is Reservation b)
+                    isSign =
+#if DEBUG
+                        false;
+#else
+                            true;
+#endif
+                    reservation.Resort!.BorderBrush = Brushes.Transparent;
+
+                    if (b.Result)
                     {
-                        if (b.Result)
+                        (DataContext as ReservationViewModel)?.Remove(b);
+
+                        using (MemoryStream ms = new(Properties.Resources.MARIO))
                         {
-                            (DataContext as ReservationViewModel)?.Remove(b);
+                            using (SoundPlayer sp = new(ms))
+                            {
+                                sp.PlaySync();
+                            }
                         }
-                        isSign = true;
-
-                        reservation.Resort!.BorderBrush = Brushes.Transparent;
-                        continue;
+                        break;
                     }
-                    await Task.Delay(0x400 * 0x40 * 0xA);
+                    continue;
                 }
-                await Task.Delay(0x400);
+                reservation.Resort!.BorderBrush = Brushes.Transparent;
+
+                await Task.Delay(0x400 * 0x40 * 0xA);
             }
-            await Task.Delay(0x200);
+            await Task.Delay(0x400);
         }
-        CancellationTokenSource?.Dispose();
+        var now = DateTime.Now;
 
-        CancellationTokenSource = null;
+        var nextTime = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 1).AddMinutes(1);
 
-        btn.IsChecked = null;
+        Send?.Invoke(this, nextTime);
+
+        await Task.Delay(nextTime - DateTime.Now);
+
+        if (reservation.Items.Count > 0 && CancellationTokenSource?.Token.IsCancellationRequested is false)
+        {
+            _ = Task.Run(ExecuteAsync);
+        }
+        else
+        {
+            CancellationTokenSource?.Dispose();
+
+            CancellationTokenSource = null;
+
+            btn.IsChecked = null;
+        }
     }
 
     void OnClick(object sender, MouseButtonEventArgs _)
@@ -87,8 +130,42 @@ public partial class ReservationContainer : UserControl
         }
     }
 
-    CancellationTokenSource? CancellationTokenSource
+    static async Task<bool> IsPolicy(DateTime startDate, string? policy)
     {
-        get; set;
+        if (string.IsNullOrEmpty(policy) is false)
+        {
+            var now = DateTime.Now;
+
+            switch (policy[0..2])
+            {
+                case "매월" when now.Month == startDate.Month:
+                    return true;
+
+                case "매월" when now.AddMonths(1).Month == startDate.Month && int.TryParse(policy[2..4].Replace("일", string.Empty), out int day):
+
+                    if (day <= now.Day)
+                    {
+                        if (day == now.Day && int.TryParse(policy[^5..^3].Replace("일", string.Empty), out int hour) && hour == now.Hour + 1)
+                        {
+                            await Task.Delay(new DateTime(now.Year, now.Month, now.Day, hour, 0, 1) - DateTime.Now);
+                        }
+                        return true;
+                    }
+                    break;
+
+                case "매월":
+
+                    break;
+
+                default:
+
+                    if (policy[^3] == '시')
+                    {
+
+                    }
+                    break;
+            }
+        }
+        return false;
     }
 }

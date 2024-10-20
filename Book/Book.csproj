@@ -2,11 +2,11 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<UseWPF>true</UseWPF>
+		<UseWindowsForms>True</UseWindowsForms>
+		<UseWPF>True</UseWPF>
 		<Title>자연휴양림</Title>
 		<Nullable>enable</Nullable>
 		<TargetFramework>net8.0-windows10.0.17763.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
 		<SupportedOSPlatformVersion>8.0</SupportedOSPlatformVersion>
 		<AssemblyName>ForestTrip</AssemblyName>
 		<RootNamespace>ShareInvest</RootNamespace>
@@ -17,6 +17,7 @@
 		<PackageProjectUrl>https://github.com/book-using-macro</PackageProjectUrl>
 		<Product>자연휴양림</Product>
 		<Version>1.0.0.0</Version>
+		<ImplicitUsings>disable</ImplicitUsings>
 	</PropertyGroup>
 
 	<ItemGroup>

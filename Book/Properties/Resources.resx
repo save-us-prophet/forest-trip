@@ -181,4 +181,19 @@
   <data name="HEADLESS" xml:space="preserve">
     <value>--headless=old</value>
   </data>
+  <data name="MARIO" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\mario.wav;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="INFORMATION" xml:space="preserve">
+    <value>(function(){var rows=document.querySelectorAll('#dayListTable tbody tr');var result=[];rows.forEach(function(row){var cells=row.querySelectorAll('td');var cellData=[];cells.forEach(function(cell){cellData.push(cell.textContent.trim());});result.push(cellData);});return JSON.stringify(result);})();</value>
+  </data>
+  <data name="ICON" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\eco_s_3_groo.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="EXIT" xml:space="preserve">
+    <value>시스템 종료</value>
+  </data>
+  <data name="BEEP" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\beep-1.wav;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

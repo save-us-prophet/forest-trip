@@ -63,6 +63,16 @@ namespace ShareInvest.Properties {
         /// <summary>
         ///   System.Byte[] 형식의 지역화된 리소스를 찾습니다.
         /// </summary>
+        internal static byte[] BEEP {
+            get {
+                object obj = ResourceManager.GetObject("BEEP", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   System.Byte[] 형식의 지역화된 리소스를 찾습니다.
+        /// </summary>
         internal static byte[] BINGO {
             get {
                 object obj = ResourceManager.GetObject("BINGO", resourceCulture);
@@ -117,6 +127,15 @@ namespace ShareInvest.Properties {
         }
         
         /// <summary>
+        ///   시스템 종료과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string EXIT {
+            get {
+                return ResourceManager.GetString("EXIT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   --headless=old과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string HEADLESS {
@@ -150,6 +169,25 @@ namespace ShareInvest.Properties {
         internal static string HTML {
             get {
                 return ResourceManager.GetString("HTML", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   (아이콘)과(와) 유사한 System.Drawing.Icon 형식의 지역화된 리소스를 찾습니다.
+        /// </summary>
+        internal static System.Drawing.Icon ICON {
+            get {
+                object obj = ResourceManager.GetObject("ICON", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   (function(){var rows=document.querySelectorAll(&apos;#dayListTable tbody tr&apos;);var result=[];rows.forEach(function(row){var cells=row.querySelectorAll(&apos;td&apos;);var cellData=[];cells.forEach(function(cell){cellData.push(cell.textContent.trim());});result.push(cellData);});return JSON.stringify(result);})();과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string INFORMATION {
+            get {
+                return ResourceManager.GetString("INFORMATION", resourceCulture);
             }
         }
         
@@ -188,6 +226,16 @@ namespace ShareInvest.Properties {
         internal static byte[] MAP {
             get {
                 object obj = ResourceManager.GetObject("MAP", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   System.Byte[] 형식의 지역화된 리소스를 찾습니다.
+        /// </summary>
+        internal static byte[] MARIO {
+            get {
+                object obj = ResourceManager.GetObject("MARIO", resourceCulture);
                 return ((byte[])(obj));
             }
         }

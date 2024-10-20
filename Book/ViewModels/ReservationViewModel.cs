@@ -3,8 +3,10 @@
 using ShareInvest.Data;
 using ShareInvest.Models;
 
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Media;
 
 namespace ShareInvest.ViewModels;
@@ -45,7 +47,8 @@ public class ReservationViewModel : INotifyPropertyChanged
                                                                          }) as SolidColorBrush) ?? Brushes.Navy
                                                                      },
                                                                      StartDate = r.StartDate,
-                                                                     EndDate = r.EndDate
+                                                                     EndDate = r.EndDate,
+                                                                     Policy = r.Policy
                                                                  });
         }
     }
