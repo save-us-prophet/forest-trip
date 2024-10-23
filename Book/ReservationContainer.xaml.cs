@@ -68,7 +68,7 @@ public partial class ReservationContainer : UserControl
 #if DEBUG
                         false;
 #else
-                            true;
+                        true;
 #endif
                     reservation.Resort!.BorderBrush = Brushes.Transparent;
 

@@ -73,6 +73,24 @@ class ReservationService : IDisposable
             return false;
         }
 
+        void clickCalendar(IWebElement calendar)
+        {
+            calendar.FindElement(By.XPath($"//a[@name='{rm.StartDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.StartDate.DayOfWeek)})']")).Click();
+            calendar.FindElement(By.XPath($"//a[@name='{rm.EndDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.EndDate.DayOfWeek)})']")).Click();
+
+            foreach (var a in calendar.FindElements(By.TagName("a")))
+            {
+                var tag = a.TagName;
+
+                if ("확인".Equals(a.Text))
+                {
+                    a.Click();
+
+                    break;
+                }
+            }
+        }
+
         if (clickComboBox("//*[@id=\"srch_frm\"]/div[1]/div[1]", matchWord: rm.Region, suffix: "//*[@id=\"srch_region\"]/ul/li"))
         {
             foreach (var popup in driver.FindElements(By.ClassName("enterPopup")))
@@ -109,19 +127,17 @@ class ReservationService : IDisposable
                 {
                     var calendar = driver.FindElement(By.Id("forestCalPicker"));
 
-                    calendar.FindElement(By.XPath($"//a[@name='{rm.StartDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.StartDate.DayOfWeek)})']")).Click();
-                    calendar.FindElement(By.XPath($"//a[@name='{rm.EndDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.EndDate.DayOfWeek)})']")).Click();
-
-                    foreach (var a in calendar.FindElements(By.TagName("a")))
+                    try
                     {
-                        var tag = a.TagName;
+                        clickCalendar(calendar);
+                    }
+                    catch (NoSuchElementException)
+                    {
+                        calendar.FindElement(By.XPath("//*/div[1]/div[1]/div/div/div[2]/div/div[2]/a[1]")).Click();
 
-                        if ("확인".Equals(a.Text))
-                        {
-                            a.Click();
+                        await Task.Delay(0x100);
 
-                            break;
-                        }
+                        clickCalendar(calendar);
                     }
 
                     while (int.TryParse(driver.FindElement(By.Id("stng_nofpr")).Text, out int cost) && cost != rm.NumberOfPeople)
