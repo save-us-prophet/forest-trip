@@ -99,7 +99,9 @@ public partial class Book : Window
                     return;
 
                 case IntervalArgs i when Math.Abs(i.Interval.TotalSeconds) > 5:
+#if DEBUG
 
+#else
                     using (MemoryStream ms = new(Properties.Resources.BEEP))
                     {
                         using (SoundPlayer sp = new(ms))
@@ -107,6 +109,7 @@ public partial class Book : Window
                             sp.PlaySync();
                         }
                     }
+#endif
                     return;
             }
         };
