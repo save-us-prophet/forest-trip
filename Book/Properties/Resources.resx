@@ -166,4 +166,34 @@
   <data name="USERPATH" xml:space="preserve">
     <value>Google\\Chrome\\User Data</value>
   </data>
+  <data name="CAPTURE" xml:space="preserve">
+    <value>var img=arguments[0];var canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;var ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,img.width,img.height);return canvas.toDataURL('image/png').substring(22);</value>
+  </data>
+  <data name="DB" xml:space="preserve">
+    <value>Data Source=Resources/app.db</value>
+  </data>
+  <data name="RESORT" xml:space="preserve">
+    <value>var txtContainer=document.getElementById('txt');if(txtContainer){var listItems=txtContainer.querySelector('ul').children;var result=Array.from(listItems).map(li=&gt;{var title=li.querySelector('.st_tit')?li.querySelector('.st_tit').innerText:'';var text=li.querySelector('.st_txt')?li.querySelector('.st_txt').innerText:'';return{title,text};});JSON.stringify(result);}else{JSON.stringify([]);}</value>
+  </data>
+  <data name="CABIN" xml:space="preserve">
+    <value>var listBoxes=document.querySelectorAll('.list_box');var results=Array.from(listBoxes).map(box=&gt;{const opt1=box.querySelector('.opt1');if(opt1){return  opt1.textContent.replace(/\s+/g,' ').trim();}return null;}).filter(text=&gt;text!==null);JSON.stringify(results);</value>
+  </data>
+  <data name="HEADLESS" xml:space="preserve">
+    <value>--headless=old</value>
+  </data>
+  <data name="MARIO" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\mario.wav;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="INFORMATION" xml:space="preserve">
+    <value>(function(){var rows=document.querySelectorAll('#dayListTable tbody tr');var result=[];rows.forEach(function(row){var cells=row.querySelectorAll('td');var cellData=[];cells.forEach(function(cell){cellData.push(cell.textContent.trim());});result.push(cellData);});return JSON.stringify(result);})();</value>
+  </data>
+  <data name="ICON" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\eco_s_3_groo.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="EXIT" xml:space="preserve">
+    <value>시스템 종료</value>
+  </data>
+  <data name="BEEP" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\beep-1.wav;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

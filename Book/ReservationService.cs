@@ -4,10 +4,12 @@ using OpenQA.Selenium.Support.UI;
 
 using ShareInvest.Models;
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-
-using Tesseract;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace ShareInvest;
 
@@ -26,6 +28,8 @@ class ReservationService : IDisposable
         {
             foreach (var arg in args) this.args.Enqueue(arg);
         }
+        chromeService.HideCommandPromptWindow = true;
+
         var chromeOption = new ChromeOptions
         {
 
@@ -41,7 +45,7 @@ class ReservationService : IDisposable
         driver.Navigate().GoToUrl(url);
     }
 
-    internal async Task EnterInfomationAsync(Reservation rm, int commandTimeout = 0x100)
+    internal async Task<Reservation?> EnterInfomationAsync(Reservation rm, int commandTimeout = 0x100)
     {
         bool clickComboBox(string prefix, string? suffix = null, string? matchWord = null)
         {
@@ -69,27 +73,71 @@ class ReservationService : IDisposable
             return false;
         }
 
+        void clickCalendar(IWebElement calendar)
+        {
+            calendar.FindElement(By.XPath($"//a[@name='{rm.StartDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.StartDate.DayOfWeek)})']")).Click();
+            calendar.FindElement(By.XPath($"//a[@name='{rm.EndDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.EndDate.DayOfWeek)})']")).Click();
+
+            foreach (var a in calendar.FindElements(By.TagName("a")))
+            {
+                var tag = a.TagName;
+
+                if ("확인".Equals(a.Text))
+                {
+                    a.Click();
+
+                    break;
+                }
+            }
+        }
+
         if (clickComboBox("//*[@id=\"srch_frm\"]/div[1]/div[1]", matchWord: rm.Region, suffix: "//*[@id=\"srch_region\"]/ul/li"))
         {
+            foreach (var popup in driver.FindElements(By.ClassName("enterPopup")))
+            {
+                if (popup.GetAttribute("class").EndsWith("show"))
+                {
+                    try
+                    {
+                        foreach (var div in popup.FindElements(By.ClassName("ep_cookie_close")))
+                        {
+                            foreach (var a in div.FindElements(By.TagName("a")))
+                            {
+                                if ("day_close".Equals(a.GetAttribute("class")))
+                                {
+                                    a.Click();
+
+                                    break;
+                                }
+                            }
+                            await Task.Delay(0x100);
+                        }
+                    }
+                    catch (ElementClickInterceptedException)
+                    {
+
+                    }
+                    continue;
+                }
+            }
+
             if (clickComboBox("//*[@id=\"srch_frm\"]/div[2]/div[1]", matchWord: rm.ForestRetreat, suffix: "//*[@id=\"srch_rcfcl\"]/ul/li"))
             {
                 if (clickComboBox("//*[@id=\"srch_frm\"]/div[3]"))
                 {
                     var calendar = driver.FindElement(By.Id("forestCalPicker"));
 
-                    calendar.FindElement(By.XPath($"//a[@name='{rm.StartDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.StartDate.DayOfWeek)})']")).Click();
-                    calendar.FindElement(By.XPath($"//a[@name='{rm.EndDate.ToString("d").Replace('-', '/')}({GetDayOfWeek(rm.EndDate.DayOfWeek)})']")).Click();
-
-                    foreach (var a in calendar.FindElements(By.TagName("a")))
+                    try
                     {
-                        var tag = a.TagName;
+                        clickCalendar(calendar);
+                    }
+                    catch (NoSuchElementException)
+                    {
+                        calendar.FindElement(By.XPath("//*/div[1]/div[1]/div/div/div[2]/div/div[2]/a[1]")).Click();
 
-                        if ("확인".Equals(a.Text))
-                        {
-                            a.Click();
+                        await Task.Delay(0x100);
 
-                            break;
-                        }
+                        clickCalendar(calendar);
                     }
 
                     while (int.TryParse(driver.FindElement(By.Id("stng_nofpr")).Text, out int cost) && cost != rm.NumberOfPeople)
@@ -140,6 +188,38 @@ class ReservationService : IDisposable
                     {
                         await Task.Delay(0x200);
 
+                        if (driver.WindowHandles.Count > 1)
+                        {
+                            string originalHandle = driver.CurrentWindowHandle;
+
+                            try
+                            {
+                                foreach (var handle in driver.WindowHandles)
+                                {
+                                    if (originalHandle.Equals(handle))
+                                    {
+                                        continue;
+                                    }
+
+                                    foreach (var div in driver.SwitchTo().Window(handle).FindElement(By.Id("mainContent")).FindElements(By.ClassName("cont_login")))
+                                    {
+                                        foreach (var e in div.FindElements(By.TagName(nameof(div))))
+                                        {
+                                            if ("login_kakaomail".Equals(e.GetAttribute("class"))) return null;
+                                        }
+                                    }
+                                }
+                            }
+                            catch (NoSuchElementException)
+                            {
+
+                            }
+                            finally
+                            {
+                                driver.SwitchTo().Window(originalHandle);
+                            }
+                        }
+
                         try
                         {
                             _ = driver.FindElement(By.Id("searchResultEmpty"));
@@ -150,12 +230,19 @@ class ReservationService : IDisposable
                             {
                                 await OpticalCharacterRecognitionAsync();
                                 await Reserve();
+
+                                rm.Result = true;
+
+                                await Task.Delay(0x400);
+
+                                return rm;
                             }
                         }
                     }
                 }
             }
         }
+        return rm;
     }
 
     async Task OpticalCharacterRecognitionAsync(int commandTimeout = 0x400)
@@ -164,32 +251,42 @@ class ReservationService : IDisposable
 
         await Task.Delay(0x200);
 
-        using (var client = new HttpClient())
+        var img = dw.Until(e => e.FindElement(By.Id("captchaImg")));
+
+        foreach (var div in img.FindElement(By.XPath("..")).FindElement(By.XPath("..")).FindElements(By.TagName("div")))
         {
-            var res = await client.GetAsync(new Uri(dw.Until(e => e.FindElement(By.Id("captchaImg"))).GetAttribute("src")));
-
-            if (res.IsSuccessStatusCode)
+            if ("sp_right".Equals(div.GetAttribute("class")))
             {
-                using (var ms = new MemoryStream())
+                foreach (var a in div.FindElements(By.TagName("a")))
                 {
-                    await res.Content.CopyToAsync(ms);
-
-                    ms.Position = 0;
-
-                    using (var img = Pix.LoadFromMemory(ms.ToArray()))
+                    if ("듣기".Equals(a.GetAttribute("title")))
                     {
-                        using (var ocr = new TesseractEngine(@"./tessdata", "eng", EngineMode.TesseractOnly))
-                        {
-                            if (ocr.SetVariable("tessedit_char_whitelist", "0123456789"))
-                            {
-                                var page = ocr.Process(img);
+                        a.Click();
 
-                                var captchaText = page.GetText().Trim();
-
-                                dw.Until(e => e.FindElement(By.Id("atmtcRsrvtPrvntChrct"))).SendKeys(captchaText);
-                            }
-                        }
+                        break;
                     }
+                }
+                break;
+            }
+        }
+
+        using (var content = new MultipartFormDataContent())
+        {
+            var imageContent = new ByteArrayContent(Convert.FromBase64String((string)((IJavaScriptExecutor)driver).ExecuteScript(Properties.Resources.CAPTURE, img)));
+
+            imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
+
+            content.Add(imageContent, "file", "captcha.png");
+
+            using (var client = new HttpClient())
+            {
+                var response = await client.PostAsync("http://localhost:15409", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var captchaText = await response.Content.ReadAsStringAsync();
+
+                    dw.Until(e => e.FindElement(By.Id("atmtcRsrvtPrvntChrct"))).SendKeys(captchaText);
                 }
             }
         }

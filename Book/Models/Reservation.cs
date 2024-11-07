@@ -1,34 +1,88 @@
-﻿namespace ShareInvest.Models;
+﻿using System;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-class Reservation
+namespace ShareInvest.Models;
+
+public class Reservation : INotifyPropertyChanged
 {
-    internal int NumberOfPeople
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public int NumberOfPeople
     {
         get; set;
     }
 
-    internal string? Region
+    [Required]
+    public string? Region
     {
         get; set;
     }
 
-    internal string? ForestRetreat
+    [Required]
+    public string? Policy
     {
         get; set;
     }
 
-    internal string? CabinName
+    [Key]
+    public string? ForestRetreat
     {
         get; set;
     }
 
-    internal DateTime StartDate
+    [Key]
+    public string? CabinName
     {
         get; set;
     }
 
-    internal DateTime EndDate
+    [Key]
+    public DateTime StartDate
     {
         get; set;
     }
+
+    public DateTime EndDate
+    {
+        get; set;
+    }
+
+    [NotMapped]
+    public string StrStartDate
+    {
+        get => StartDate.ToString("d");
+    }
+
+    [NotMapped]
+    public string StrEndDate
+    {
+        get => EndDate.ToString("d");
+    }
+
+    [NotMapped]
+    public House? Resort
+    {
+        set
+        {
+            resort = value;
+
+            OnPropertyChanged(nameof(Resort));
+        }
+        get => resort;
+    }
+
+    [NotMapped]
+    public bool Result
+    {
+        get; set;
+    }
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    House? resort;
 }

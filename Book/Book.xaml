@@ -99,7 +99,7 @@
                         </Button.Template>
                     </Button>
 
-                    <DatePicker Width="296" Margin="8,4" Padding="4" MouseLeftButtonDown="OnClick">
+                    <DatePicker Width="296" Margin="8,4" Padding="4" MouseLeftButtonDown="OnClick" Loaded="OnLoaded">
                         <DatePicker.Template>
                             <ControlTemplate TargetType="DatePicker">
                                 <Grid>
@@ -215,6 +215,8 @@
                 </StackPanel>
 
             </Border>
+
+            <local:ReservationContainer x:Name="reservation" DockPanel.Dock="Right" MinWidth="256" MaxWidth="320" />
 
             <wv2:WebView2 Name="webView2" />
 

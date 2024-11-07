@@ -1,13 +1,15 @@
 ﻿using ShareInvest.Models;
 
+using System;
+
 namespace ShareInvest.EventHandler;
 
 class HouseArgs : EventArgs
 {
-    internal HouseItem Item
+    internal ForestRetreat Item
     {
         get;
     }
 
-    internal HouseArgs(HouseItem item) => Item = item;
+    internal HouseArgs(ForestRetreat item) => Item = item;
 }
